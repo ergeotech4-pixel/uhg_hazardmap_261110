@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="mn">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>UHG Hazard Map</title>
+
+    <style>
+
+        /* =========================
+           ҮНДСЭН WEB ХЭСЭГ
+        ========================= */
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+
+            background: #ffffff;
+        }
+
+
+        /* =========================
+           ҮНДСЭН ХҮРЭЭ
+        ========================= */
+
+        .wrapper {
+
+            width: 1000px;
+
+            background: #ffffff;
+
+            border: 3px solid #003366;
+
+            border-radius: 8px;
+
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+
+            margin-top: 20px;
+
+            overflow: visible;
+        }
+
+
+        /* =========================
+           HEADER
+        ========================= */
+
+        header {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            background: linear-gradient(
+                90deg,
+                #e6f0ff,
+                #f7fbff
+            );
+
+            border-bottom: 4px solid #003366;
+
+            padding: 6px 18px;
+
+            border-radius: 6px 6px 0 0;
+        }
+
+
+        header img {
+
+            height: 35px;
+
+            width: auto;
+
+            display: block;
+        }
+
+
+        header h1 {
+
+            font-size: 20px;
+
+            color: #003366;
+
+            text-align: center;
+
+            flex-grow: 1;
+
+            margin: 0 10px;
+
+            line-height: 1.4;
+
+            font-weight: 600;
+        }
+
+
+        /* =========================
+           BASE ЗУРАГНЫ CONTAINER
+        ========================= */
+
+        .container {
+
+            position: relative;
+
+            display: block;
+
+            width: 100%;
+
+            margin: 0;
+
+            padding: 0;
+        }
+
+
+        /* =========================
+           PLAN.JPG BASE ЗУРАГ
+           
+           display:block нь
+           зургийн доод талд browser
+           автоматаар үүсгэдэг зайг
+           арилгана.
+        ========================= */
+
+        .base {
+
+            display: block;
+
+            width: 100%;
+
+            height: auto;
+
+            margin: 0;
+
+            padding: 0;
+
+            border: 0;
+
+            vertical-align: top;
+        }
+
+
+        /* =========================
+           HOTSPOT
+        ========================= */
+
+        .hotspot {
+
+            position: absolute;
+
+            /*
+               left / top / width / height-ийг JavaScript
+               PLAN.JPG-ийн 1000px суурь өргөнтэй харьцуулж
+               автоматаар масштаблана.
+            */
+
+            background: transparent;
+
+            cursor: pointer;
+
+            z-index: 5;
+
+            box-sizing: border-box;
+        }
+
+
+        /* Хэрэв hotspot хаана байгааг
+           түр харах шаардлагатай бол:
+
+        .hotspot {
+            background: rgba(255,0,0,0.4);
+        }
+
+        */
+
+
+        /* =========================
+           POPUP
+        ========================= */
+
+        .popup {
+
+            position: absolute;
+
+            background: #ffffff;
+
+            border: 3px solid red;
+
+            padding: 10px;
+
+            width: 100%;
+
+            box-sizing: border-box;
+
+            box-shadow: 2px 2px 5px #aaa;
+
+            z-index: 100;
+
+            opacity: 0;
+
+            visibility: hidden;
+
+            pointer-events: none;
+
+            transform: translateY(30px);
+
+            transition:
+                opacity 0.5s ease,
+                transform 0.5s ease,
+                visibility 0.5s;
+        }
+
+
+        .popup.show {
+
+            opacity: 1;
+
+            visibility: visible;
+
+            pointer-events: auto;
+
+            transform: translateY(0);
+        }
+
+
+        /* =========================
+           POPUP TITLE
+        ========================= */
+
+        .popup h3 {
+
+            font-size: 20px;
+
+            background: orange;
+
+            padding: 5px;
+
+            margin: -10px -10px 10px -10px;
+
+            color: #000000;
+
+            line-height: 1.3;
+        }
+
+
+        /* =========================
+           POPUP TEXT
+        ========================= */
+
+        .popup p {
+
+            font-size: 16px;
+
+            line-height: 1.5;
+
+            margin: 10px 0;
+        }
+
+
+        /* =========================
+           POPUP ЗУРАГ
+        ========================= */
+
+        .popup img {
+
+            display: block;
+
+            width: 100%;
+
+            height: auto;
+
+            margin-top: 5px;
+        }
+
+
+        /* =========================
+           CLOSE BUTTON
+        ========================= */
+
+        .close {
+
+            color: black;
+
+            cursor: pointer;
+
+            float: right;
+
+            font-size: 48px;
+
+            line-height: 35px;
+
+            font-weight: bold;
+
+            position: relative;
+
+            z-index: 200;
+        }
+
+
+        .close:hover {
+
+            color: red;
+        }
+
+
+        /* =========================
+           ENGLISH TEXT
+        ========================= */
+
+        .eng {
+
+            color: blue;
+
+            font-style: italic;
+
+            display: block;
+
+            margin-top: 8px;
+
+            line-height: 1.5;
+        }
+
+
+        /* =========================
+           ЖИЖИГ ДЭЛГЭЦЭНД
+        ========================= */
+
+        @media (max-width: 1020px) {
+
+            .wrapper {
+
+                width: calc(100% - 12px);
+
+                margin-top: 6px;
+            }
+
+            header h1 {
+
+                font-size: 16px;
+            }
+
+        }
+
+    </style>
+
+
+    <script>
+
+        function openPopup(id) {
+
+            /* өмнө нээгдсэн popup байвал хаана */
+
+            document
+                .querySelectorAll('.popup.show')
+                .forEach(function (popup) {
+
+                    popup.classList.remove('show');
+
+                });
+
+
+            /* сонгосон popup нээнэ */
+
+            const popup =
+                document.getElementById(id);
+
+            if (popup) {
+
+                popup.classList.add('show');
+
+            }
+
+        }
+
+
+        function closePopup(id) {
+
+            const popup =
+                document.getElementById(id);
+
+            if (popup) {
+
+                popup.classList.remove('show');
+
+            }
+
+        }
+
+
+        /* =====================================================
+           RESPONSIVE HOTSPOT POSITION
+
+           PLAN.JPG дээр hotspot-ууд анх 1000px өргөнтэй
+           координатын системээр байрлуулсан.
+
+           Зураг дэлгэцийн хэмжээнээс шалтгаалан жижгэрэх/томроход
+           hotspot-ийн X, Y болон дарах талбайн хэмжээ мөн адил
+           автоматаар масштаблагдана.
+        ====================================================== */
+
+        const BASE_MAP_WIDTH = 1000;
+
+        function updateHotspots() {
+
+            const container = document.querySelector('.container');
+
+            if (!container) return;
+
+            const scale = container.clientWidth / BASE_MAP_WIDTH;
+
+            document.querySelectorAll('.hotspot').forEach(function (hotspot) {
+
+                const x = parseFloat(hotspot.dataset.x || 0);
+                const y = parseFloat(hotspot.dataset.y || 0);
+                const width = parseFloat(hotspot.dataset.width || 60);
+                const height = parseFloat(hotspot.dataset.height || 20);
+
+                hotspot.style.left = (x * scale) + 'px';
+                hotspot.style.top = (y * scale) + 'px';
+                hotspot.style.width = (width * scale) + 'px';
+                hotspot.style.height = (height * scale) + 'px';
+            });
+        }
+
+
+        window.addEventListener('DOMContentLoaded', function () {
+
+            updateHotspots();
+
+            const container = document.querySelector('.container');
+
+            if (container && 'ResizeObserver' in window) {
+
+                const observer = new ResizeObserver(updateHotspots);
+                observer.observe(container);
+            }
+
+        });
+
+
+        window.addEventListener('resize', updateHotspots);
+
+    </script>
+
+</head>
+
+
+<body>
+
+
+<div class="wrapper">
+
+
+    <!-- =========================
+         HEADER
+    ========================== -->
+
+    <header>
+
+        <img
+            src="logo.png"
+            alt="Company Logo"
+        >
+
+
+        <h1>
+
+            Ухаахудаг уурхайн геотехникийн аюултай бүсийн зураг
+
+            <br>
+
+            Geotechnical hazard map of UHG — 2026.11.10
+
+        </h1>
+
+    </header>
+
+
+
+    <!-- =========================
+         BASE MAP CONTAINER
+    ========================== -->
+
+    <div class="container">
+
+
+        <!-- =========================
+             СУУРЬ ЗУРАГ
+        ========================== -->
+
+        <img
+            src="PLAN.JPG"
+            class="base"
+            alt="UHG Hazard Map"
+        >
+
+
+
+        <!-- =====================================================
+             GT HAZARD-8
+        ====================================================== -->
+
+        <div
+            class="hotspot"
+            data-x="335"
+            data-y="845"
+            data-width="60"
+            data-height="20"
+            onclick="openPopup('haz8')">
+        </div>
+
+
+        <div
+            id="haz8"
+            class="popup"
+            style="left:0; top:20px;"
+        >
+
+            <span
+                class="close"
+                onclick="closePopup('haz8')"
+            >
+                &times;
+            </span>
+
+
+            <h3>
+                GT Hazard-8
+            </h3>
+
+
+            <p>
+
+                Стрип 119-130 уурхайн баруун өндөр хананы ирмэг дагуух  эрсдэлтэй бүсийг батлагдсан эрсдэлийн үнэлгээний дагуу дээрээс доош буулгах олборлолтын ажил хийгдэж байна.
+Урд хананы нүүрэн хэсэгт хэд хэдэн цууралт үүссэн бөгөөд хананы ирмэгээс 1–2 м зайд 500 м орчим үргэлжилсэн цууралттай. 
+Тус хэсэгт 2 кракметр багаж байрлуулан тогтмол хэмжилт хийж байгаа ба уурхайн мастер болон геотехникийн инженер эрсдэлтэй бүсийн талбайн үзлэгийг TARP-н дагуу тогтмол үзлэг хийж ажиллана. 
+
+   
+
+
+
+                <span class="eng">
+
+                    Mining operations are currently being carried out in the risk area along the crest of the western highwall of Strip 119–130, progressing from top to bottom in accordance with the approved Risk Assessment. Several cracks have developed on the southern wall face, including a crack extending approximately 500 m at a distance of 1–2 m from the crest of the wall. Two crackmeters have been installed in the area, and regular monitoring measurements are being conducted. The Mining Supervisor and Geotechnical Engineer will conduct regular inspections of the risk area in accordance with the TARP (Trigger Action Response Plan).
+                </span>
+
+            </p>
+
+
+            <img
+                src="hazard8.jpg"
+                alt="Hazard-8 зураг"
+            >
+
+        </div>
+
+
+
+        <!-- =====================================================
+             GT HAZARD-1A
+        ====================================================== -->
+
+        <div
+            class="hotspot"
+            data-x="275"
+            data-y="730"
+            data-width="60"
+            data-height="20"
+            onclick="openPopup('haz1a')">
+        </div>
+
+
+        <div
+            id="haz1a"
+            class="popup"
+            style="left:0; top:20px;"
+        >
+
+            <span
+                class="close"
+                onclick="closePopup('haz1a')"
+            >
+                &times;
+            </span>
+
+
+            <h3>
+                GT Hazard-1A
+            </h3>
+
+
+            <p>
+
+                GT Hazard-1B хэсгийн 1440 м-ийн түвшинд үүссэн цууралт баруун тийш тэлж, улмаар урд хэсгийн 3 болон 4-р давхраасын нүүрсний дагуу цууралт үүсэж, гулсалт явагдсан. Тухайн эрсдэлтэй бүсийн цууралт баруун тийш тэлж гадарга дээр болон урд хананы нүүр хэсгүүдэд олон тооны цууралтууд үүссэн ажиглагдана.GT Hazard-1А хэсгийн 1290м түвшин дэхь эрсдэлтэй бүсийг батлагдсан эрсдэлийн үнэлгээний дагуу дээрээс доош буулгах олборлолтын ажил хийгдэж байна. Эрсдэлтэй бүсэд 4ш призм байршуулан мониторинг хийж байгаа ба геотехникийн инженер зайнаас өдөр тутмын нүдэн үзлэг, хөдөлгөөнт радар болон дроны төлөвлөгөөт үзлэг,  хяналт тавьж ажиллаж байна.
+
+
+                <span class="eng">
+
+                    At the GT Hazard-1B area, the tension crack that developed at the 1440 m elevation has propagated westward, subsequently resulting in cracking and slope failure along the 3 and 4 coal seams in the southern area. The cracks within the affected area have continued to propagate westward, with multiple cracks observed on the ground surface and along the face of the southern wall. A total of seven prisms have been installed within the hazard zone at the 1290 m for ongoing monitoring. The Geotechnical Engineer conducts regular monitoring through daily remote visual inspections and scheduled drone surveys to assess ground conditions and identify any further signs of deformation or instability.
+                </span>
+
+            </p>
+
+
+            <img
+                src="hazard1a.jpg"
+                alt="Hazard-1A зураг"
+            >
+
+        </div>
+
+
+
+        <!-- =====================================================
+             GT HAZARD-1B
+        ====================================================== -->
+
+        <div
+            class="hotspot"
+            data-x="350"
+            data-y="790"
+            data-width="60"
+            data-height="20"
+            onclick="openPopup('haz1b')">
+        </div>
+
+
+        <div
+            id="haz1b"
+            class="popup"
+            style="left:0; top:20px;"
+        >
+
+            <span
+                class="close"
+                onclick="closePopup('haz1b')"
+            >
+                &times;
+            </span>
+
+
+            <h3>
+                GT Hazard-1B
+            </h3>
+
+
+            <p>
+
+                2023.09.01-ний өдөр уурхайн GT Hazard-1B аюултай бүсийн 1440 м-ийн түвшинд цууралт үүссэн. Үүссэн цууралт баруун чиглэлд тэлж, уурхайн урд хэсгийн 0С нүүрсний давхраасын дагуу гулсалт үүссэн. Одоогийн байдлаар эрсдэлтэй бүсийн гадарга дээр олон тооны хагарал цууралттай бөгөөд аюултай бүсийн хүрээнд үүссэн хагарал, цууралт дээр геотехникийн мониторингийн багаж хэрэгсэл байрлуулах боломжгүй. Аюултай бүсийн хүрээнд хүн болон техник нэвтрэхийг хориглосон ба геотехникийн инженер зайнаас өдөр тутмын нүдэн үзлэг болон дроны төлөвлөгөөт үзлэгээр тогтмол хяналт тавьж ажиллаж байна.
+
+
+                <span class="eng">
+
+                   On 1 September 2023, a tension crack developed at the 1440 m elevation within the GT Hazard-1B hazard zone. The crack subsequently propagated westward, resulting in a slope failure along the 0C coal seam in the southern part of the mine. Currently, multiple cracks and tension cracks are present on the ground surface within the affected area. Due to the unstable ground conditions, installation of geotechnical monitoring instruments on or in the immediate vicinity of the existing cracks within the hazard zone is not feasible. Access by personnel and mobile equipment is prohibited within the designated hazard zone. The area is regularly monitored remotely by the Geotechnical Engineer through daily visual inspections and scheduled drone surveys to assess ground conditions and identify any further signs of deformation or instability.
+
+                </span>
+
+            </p>
+
+
+            <img
+                src="hazard1b.jpg"
+                alt="Hazard-1B зураг"
+            >
+
+        </div>
+
+
+
+        <!-- =====================================================
+             GT HAZARD-23
+        ====================================================== -->
+
+        <div
+            class="hotspot"
+            data-x="430"
+            data-y="515"
+            data-width="60"
+            data-height="20"
+            onclick="openPopup('haz23')">
+        </div>
+
+
+        <div
+            id="haz23"
+            class="popup"
+            style="left:0; top:20px;"
+        >
+
+            <span
+                class="close"
+                onclick="closePopup('haz23')"
+            >
+                &times;
+            </span>
+
+
+            <h3>
+                GT Hazard-23
+            </h3>
+
+
+            <p>
+
+                1402-н түвшин, стрип#133-114 25-ийн налуу замын
+                доод хажуугийн хэврэг материал OCUU нүүрсний тааз дээр
+                гулсаж нуралт үүссэн.
+
+                Нуралт үүссэн мөргөцгийн өндөр 12м,
+                81м урт үргэлжлэх ба 1м орчим доош суулт үүссэн.
+
+                Эрсдэл бүхий талбайн үзлэгийг "TARP"-ын дагуу
+                тогтмол хийх, тухайн эрсдэлтэй бүсэд ойр ажиллах
+                тохиолдолд JHA хийж ажиллах.
+
+
+                <span class="eng">
+
+                    At the 1402 level, strip #133-114, a slope failure
+                    occurred on the lower side of the 25-ramp due to
+                    sliding of loose material from the OCUU coal seam roof.
+
+                    The slope failure measured 12m in height,
+                    extended 81m in length, and experienced approximately
+                    1m of subsidence.
+
+                    Regular TARP monitoring and inspection are required,
+                    and perform JHA when working near a hazard area.
+
+                </span>
+
+            </p>
+
+
+            <img
+                src="hazard23.jpg"
+                alt="Hazard-23 зураг"
+            >
+
+        </div>
+
+
+
+        <!-- =====================================================
+             GT HAZARD-24
+        ====================================================== -->
+
+        <div
+            class="hotspot"
+            data-x="255"
+            data-y="565"
+            data-width="60"
+            data-height="20"
+            onclick="openPopup('haz24')">
+        </div>
+
+
+        <div
+            id="haz24"
+            class="popup"
+            style="left:0; top:20px;"
+        >
+
+            <span
+                class="close"
+                onclick="closePopup('haz24')"
+            >
+                &times;
+            </span>
+
+
+            <h3>
+                GT Hazard-24
+            </h3>
+
+
+            <p>
+
+                1280-н түвшин, strip#128 хойд хэсэгт тээврийн замын
+                хажуугийн нүүрэн талд цууралт үүсэж,
+                3А нүүрсний үелэл хоорондын материалд суулт явагдсан.
+
+                Цууралт үүссэн хананы өндөр 30м, урт нь 40м үргэлжилнэ.
+
+                Эрсдэл бүхий талбайн үзлэгийг "TARP"-ын дагуу
+                тогтмол хийх. Тухайн бүсийн доор хүн болон техник ажиллах тохиолдолд JHA хийж ажиллах шаардлагатай.
+
+
+                <span class="eng">
+
+                    At the 1280 level, on the northern side of strip #128,
+                    a crack developed on the exposed face adjacent to the
+                    ramp, accompanied by sliding in the interburden material
+                    between the 3A coal seams.
+
+                    The wall with the crack extends 30 meters in height and 40 meters in length.
+
+                    Regular TARP monitoring and inspection are required,
+                    and JHA should be performed when working near
+                    the hazard area.
+
+                </span>
+
+            </p>
+
+
+            <img
+                src="hazard24.jpg"
+                alt="Hazard-24 зураг"
+            >
+
+        </div>
+
+
+
+        <!-- =====================================================
+             GT HAZARD-28
+        ====================================================== -->
+
+        <div
+            class="hotspot"
+            data-x="400"
+            data-y="585"
+            data-width="60"
+            data-height="20"
+            onclick="openPopup('haz28')">
+        </div>
+
+
+        <div
+            id="haz28"
+            class="popup"
+            style="left:0; top:20px;"
+        >
+
+            <span
+                class="close"
+                onclick="closePopup('haz28')"
+            >
+                &times;
+            </span>
+
+
+            <h3>
+                GT Hazard-28
+            </h3>
+
+
+            <p>
+
+                1343.7-н түвшин, strip#117, хананы ирмэг дагуу
+                геологийн хагаралын нөлөөгөөр ан цавын хавтгайд
+                параллель цууралтууд үүсэж тэлэлт явагдсан.
+
+                Цууралтууд үүссэн хананы өндөр 32 метр өндөртэй,
+                цууралт нь 45-60 м урт үргэлжлэх ба 8 см тэлж, ирмэгээс 15м зайд байрлана.
+                Эрсдэл бүхий талбайн үзлэгийг "TARP"-ын дагуу
+                тогтмол хийх, тухайн эрсдэлтэй бүсэд ойр ажиллах
+                тохиолдолд JHA хийж ажиллах.
+
+                Шинээр ирмэг дагуу хагарал, цууралт үүсэх,
+                гулсалт нуралт ажиглагдах буюу тогтворгүй нөхцөл
+                байдал үүсэх тохиолдолд геотехникийн инженерт
+                яаралтай мэдэгдэж шалгуулах шаардлагатай.
+
+
+                <span class="eng">
+
+                    At level 1343.7 in strip #117, parallel cracks
+                    have developed along the joint plane near the pit
+                    crest due to the influence of a geological fault,
+                    accompanied by progressive opening.
+
+                    The wall where the cracks have developed is
+                    approximately 32 meters in height, with the cracking
+                    extending 45–60 meters in length and showing about
+                    8 cm of opening.  These cracks are located at distances of up to
+                    15 meters from the crest
+                    Regular TARP monitoring and inspection are required,
+                    and perform JHA when working near a hazard area.
+
+                    If any movement is observed or an unfamiliar crack
+                    and existing crack opening are observed along the
+                    edge, or landslide, confirm that the geotechnical
+                    engineer has been informed.
+
+                </span>
+
+            </p>
+
+
+            <img
+                src="hazard28.jpg"
+                alt="Hazard-28 зураг"
+            >
+
+        </div>
+
+
+
+        <!-- =====================================================
+             GT HAZARD-30
+        ====================================================== -->
+
+        <div
+            class="hotspot"
+            data-x="80"
+            data-y="385"
+            data-width="60"
+            data-height="20"
+            onclick="openPopup('haz30')">
+        </div>
+
+
+        <div
+            id="haz30"
+            class="popup"
+            style="left:0; top:20px;"
+        >
+
+            <span
+                class="close"
+                onclick="closePopup('haz30')"
+            >
+                &times;
+            </span>
+
+
+            <h3>
+                GT Hazard-30
+            </h3>
+
+
+            <p>
+
+                2026.06.28-ны өдөр орсон борооны улмаас
+                Стрип#136 хэсэгт өмнө бүртгэгдсэн байсан цууралтад
+                хөдөлгөөн орж, шаварлаг материалаар дүүргэгдсэн
+                ан цавын дагуу гулсалт явагдсан.
+
+                Гулсалт үүссэн хажуугийн өндөр 20м бөгөөд
+                хойд хэсэгт 1498-н түвшинд ирмэг дагуу
+                цууралт үүссэн.
+
+                Эрсдэл бүхий талбайн үзлэгийг "TARP"-ын дагуу
+                тогтмол хийх.
+
+                Цууралттай хэсгийн доод тээврийн замын
+                хамгаалалтын хөмсгийг өндөрлөх.
+
+                Шинээр ирмэг дагуу хагарал, цууралт үүсэх,
+                гулсалт нуралт ажиглагдах буюу тогтворгүй нөхцөл
+                байдал үүсэх тохиолдолд геотехникийн инженерт
+                яаралтай мэдэгдэж шалгуулах шаардлагатай.
+
+
+                <span class="eng">
+
+                    The heavy rainfall event on 28 June 2026
+                    reactivated the previously identified crack at
+                    Strip #136, resulting in sliding along a
+                    clay-filled discontinuity plane.
+
+                    The slide has a vertical height of approximately
+                    20 m, and tension cracks have developed along the
+                    crest on the northern side at the RL 1498 elevation.
+
+                    Regular monitoring and inspection are required,
+                    and perform JHA when working near a hazard area.
+
+                    The safety bund on the lower haul road below the
+                    cracked zone must be raised.
+
+                    If any movement is observed or an unfamiliar crack
+                    and existing crack opening are observed along the
+                    crest, or landslide, confirm that the geotechnical
+                    engineer has been informed.
+
+                </span>
+
+            </p>
+
+
+            <img
+                src="hazard30.jpg"
+                alt="Hazard-30 зураг"
+            >
+
+        </div>
+
+
+
+        <!-- =====================================================
+                          GT HAZARD-32
+        ====================================================== -->
+
+        <div
+            class="hotspot"
+            data-x="190"
+            data-y="550"
+            data-width="60"
+            data-height="20"
+            onclick="openPopup('haz32')">
+        </div>
+
+
+        <div
+            id="haz32"
+            class="popup"
+            style="left:0; top:20px;"
+        >
+
+            <span
+                class="close"
+                onclick="closePopup('haz32')"
+            >
+                &times;
+            </span>
+
+
+            <h3>
+                GT Hazard-32
+            </h3>
+
+
+            <p>
+
+                2026.08.10 өдөр уурхайн хойд ханын
+                1317-н түвшин, стрип#132 хэсэгт цууралт үүсэн ба  4С нүүрсийг 20м уллаж олборлох явцад хойд хана тал дахин цууралт үүсэн.
+                Эрсдэл бүхий талбайн үзлэгийг "TARP"-ын дагуу
+                тогтмол хийх, тухайн эрсдэлтэй бүсэд ойр
+                ажиллах тохиолдолд JHA хийж ажиллах.
+
+
+                <span class="eng">
+
+                    On 10 August 2026, at Level 1317,
+                    Strip #132 on the northern wall of the open pit,
+                    a new crack developed along the haul road crest
+                    on a vertical joint plane oriented toward the pit,
+                    following blast.
+
+                    Regular TARP monitoring and inspection are required,
+                    and perform JHA when working near a hazard area.
+
+                </span>
+
+            </p>
+
+
+            <img
+                src="hazard32.jpg"
+                alt="Hazard-32 зураг"
+            >
+
+        </div>
+
+
+        <!-- =====================================================
+             GT HAZARD-33
+        ====================================================== -->
+
+        <div
+            class="hotspot"
+            data-x="190"
+            data-y="500"
+            data-width="60"
+            data-height="20"
+            onclick="openPopup('haz33')">
+        </div>
+
+
+        <div
+            id="haz33"
+            class="popup"
+            style="left:0; top:50px;"
+        >
+
+            <span
+                class="close"
+                onclick="closePopup('haz33')"
+            >
+                &times;
+            </span>
+
+
+            <h3>
+                GT Hazard-33
+            </h3>
+
+
+            <p>
+              
+               1350-н түвшин, стрип#132-133 хэсгийн хойд хананд уурхай руу чиглэсэн босоо ан цавын хавтгайн дагуу гулсалт явагдсан. Гулсалт үүссэн хажуугийн өндөр 16 м бөгөөд гулсалт нийт 80 м орчим урттайгаар үргэлжилсэн байна.
+               Эрсдэл бүхий талбайн үзлэгийг "TARP"-ын дагуу тогтмол хийх, тухайн эрсдэлтэй бүсэд ойр ажиллах тохиолдолд JHA хийж ажиллах.
+               Гулсалтын доод хязгаараас 10-15 метр зайд 2м өндөртэй хамгаалалтын хөмсгийг  байрлуулах шаардлагатай. 
+               Шинээр ирмэг дагуу хагарал, цууралт үүсэх, гулсалт нуралт ажиглагдах буюу тогтворгүй нөхцөл байдал үүсэх тохиолдолд геотехникийн инженерт яаралтай мэдэгдэж шалгуулах шаардлагатай.  
+                <span class="eng">
+                   At the 1350 m elevation in the Strip 132–133 area, a slope failure occurred along a near-vertical joint plane dipping toward the mine on the northern wall. The failed slope was approximately 16 m high, and the failure extended for approximately 80 m along the wall. Regular inspections of the hazardous area shall be conducted in accordance with the TARP (Trigger Action Response Plan). If work is required in close proximity to the identified hazard zone, a Job Hazard Analysis (JHA) shall be completed prior to commencing work. A 2 m-high safety berm shall be constructed 10–15 m from the lower limit of the failed area. If new cracks or tension cracks develop along the crest, or if further slope movement, failure, or other signs of instability are observed, the Geotechnical Engineer shall be notified immediately for inspection and assessment. 
+                </span>
+
+            </p>
+
+
+            <img
+                src="hazard33.jpg"
+                alt="Hazard-33 зураг"
+            >
+
+        </div>
+  <!-- =====================================================
+             GT HAZARD-35
+        ====================================================== -->
+
+        <div
+            class="hotspot"
+            data-x="110"
+            data-y="600"
+            data-width="60"
+            data-height="20"
+            onclick="openPopup('haz35')">
+        </div>
+
+
+        <div
+            id="haz35"
+            class="popup"
+            style="left:0px; top:50px;"
+        >
+
+            <span
+                class="close"
+                onclick="closePopup('haz35')"
+            >
+                &times;
+            </span>
+
+
+            <h3>
+                GT Hazard-35
+            </h3>
+
+
+            <p>
+              
+               1350-н түвшин, стрип#133-134 EX8101 -н технологийн зам дээр Shot_3618 дугаартай тэсэлгээний нөлөөгөөр 6 давхраасын нүүрс дээр шилжилт явагдаж цууралт үүссэн байна.
+               Эрсдэл бүхий талбайн үзлэгийг "TARP"-ын дагуу тогтмол хийх, тухайн эрсдэлтэй бүсэд ойр ажиллах тохиолдолд JHA хийж ажиллах.
+               Шинээр ирмэг дагуу хагарал, цууралт үүсэх, гулсалт нуралт ажиглагдах буюу тогтворгүй нөхцөл байдал үүсэх тохиолдолд геотехникийн инженерт яаралтай мэдэгдэж шалгуулах шаардлагатай.  
+                <span class="eng">
+                   At the 1350 m elevation in the Strip 133–13 area,  Shot_3618 blast, ground movement occurred along Coal 
+Seam 6 near the EX8101 haul road, resulting in cracking. Regular inspections of the hazardous area shall be conducted in accordance with the TARP (Trigger Action Response Plan). If work is required in close proximity to the identified hazard zone, a Job Hazard Analysis (JHA) shall be completed prior to commencing work. If new cracks or tension cracks develop along the crest, or if further slope movement, failure, or other signs of instability are observed, the Geotechnical Engineer shall be notified immediately for inspection and assessment. 
+                </span>
+
+            </p>
+
+
+            <img
+                src="hazard35.jpg"
+                alt="Hazard-35 зураг"
+            >
+
+
+    </div>
+
+ <!-- =====================================================
+             GT HAZARD-34
+        ====================================================== -->
+
+        <div
+            class="hotspot"
+            data-x="220"
+            data-y="615"
+            data-width="60"
+            data-height="20"
+            onclick="openPopup('haz34')">
+        </div>
+
+
+        <div
+            id="haz34"
+            class="popup"
+            style="left:0px; top:50px;"
+        >
+
+            <span
+                class="close"
+                onclick="closePopup('haz34')"
+            >
+                &times;
+            </span>
+
+
+            <h3>
+                GT Hazard-34
+            </h3>
+
+
+            <p>
+              
+               1284-н түвшин, стрип#130-131 хэсэгт 4A нүүрсний давхрааст гулсалт явагдаж тээврийн замын ирмэг дагуу шинээр цууралт үүсэж суулт өгсөн. Цууралт үүссэн мөргөцгийн өндөр 12 м ба цууралт нь ирмэгээсээ 5-10 м зайд, 90 м урт үргэлжилсэн бөгөөд 10см орчим суулт явагдсан. Шинээр ирмэг дагуу хагарал, цууралт үүсэх, гулсалт нуралт ажиглагдах буюу тогтворгүй нөхцөл байдал үүссэн тохиолдолд геотехникийн инженерт яаралтай мэдэгдэж шалгуулах шаардлагатай.  
+                <span class="eng">
+                  At RL 1284 m, Strip #130–131, sliding occurred along the 4A coal seam, resulting in the development of new cracks and ground settlement along the haul road crest. The bench height is 12 m. The crack extends approximately 90 m along the slope, located 5–10 m from the crest, with approximately 10 cm of settlement observed./Must not operate the down elevations until the cracks start to safe. If any movement is observed or an unfamiliar crack and existing crack opening are observed along the crest, or landside, confirm that the geotechnical engineer has been informed
+ 
+                </span>
+
+            </p>
+
+
+            <img
+                src="hazard34.jpg"
+                alt="Hazard-34 зураг"
+            >
+
+
+</div>
+
+
+</body>
+
+</html>
